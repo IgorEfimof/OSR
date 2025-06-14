@@ -1,25 +1,28 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <title>Двигаемая рамка для OCR</title>
-  <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <title>OCR на iPad</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <h2>Двигаемая рамка для распознавания чисел</h2>
+  <h2>Распознавание чисел (iPad ready)</h2>
   <input type="file" id="imgInput" accept="image/*" />
   <div class="container">
     <img id="sourceImage" />
-    <div id="frame"></div>
+    <div id="frame" class="draggable">
+      <div class="resizer"></div>
+    </div>
   </div>
   <button id="recognizeBtn">Распознать</button>
   <div class="inputs">
-    <input type="text" id="num1" placeholder="Число 1">
-    <input type="text" id="num2" placeholder="Число 2">
+    <input type="text" id="num1" placeholder="Число 1" />
+    <input type="text" id="num2" placeholder="Число 2" />
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.0.1/dist/tesseract.min.js"></script>
   <script src="script.js"></script>
 </body>
 </html>
+
 
