@@ -1,42 +1,64 @@
-const dropZone = document.getElementById("drop-zone");
-const fileInput = document.getElementById("file-input");
+const frame = document.getElementById("frame");
+let isDragging = false;
+let offset = { x: 0, y: 0 };
 
-dropZone.addEventListener("dragover", (e) => {
-  e.preventDefault();
-  dropZone.style.borderColor = "green";
+frame.addEventListener("mousedown", (e) => {
+  isDragging = true;
+  offset.x = e.offsetX;
+  offset.y = e.offsetY;
+});
+document.addEventListener("mousemove", (e) => {
+  if (isDragging) {
+    frame.style.left = `${e.pageX - offset.x}px`;
+    frame.style.top = `${e.pageY - offset.y}px`;
+  }
+});
+document.addEventListener("mouseup", () => {
+  isDragging = false;
 });
 
-dropZone.addEventListener("dragleave", () => {
-  dropZone.style.borderColor = "#888";
-});
-
-dropZone.addEventListener("drop", (e) => {
-  e.preventDefault();
-  dropZone.style.borderColor = "#888";
-  const file = e.dataTransfer.files[0];
+document.getElementById("imgInput").addEventListener("change", (e) => {
+  const file = e.target.files[0];
   if (file) {
-    recognizeText(file);
+    const reader = new FileReader();
+    reader.onload = function () {
+      document.getElementById("sourceImage").src = reader.result;
+    };
+    reader.readAsDataURL(file);
   }
 });
 
-fileInput.addEventListener("change", () => {
-  const file = fileInput.files[0];
-  if (file) {
-    recognizeText(file);
-  }
-});
+document.getElementById("recognizeBtn").addEventListener("click", () => {
+  const img = document.getElementById("sourceImage");
+  const frameRect = frame.getBoundingClientRect();
+  const imgRect = img.getBoundingClientRect();
 
-function recognizeText(file) {
-  Tesseract.recognize(file, 'eng', {
+  // Создание временного canvas
+  const canvas = document.createElement("canvas");
+  const ctx = canvas.getContext("2d");
+
+  const scaleX = img.naturalWidth / imgRect.width;
+  const scaleY = img.naturalHeight / imgRect.height;
+
+  const sx = (frameRect.left - imgRect.left) * scaleX;
+  const sy = (frameRect.top - imgRect.top) * scaleY;
+  const sw = frame.offsetWidth * scaleX;
+  const sh = frame.offsetHeight * scaleY;
+
+  canvas.width = sw;
+  canvas.height = sh;
+  ctx.drawImage(img, sx, sy, sw, sh, 0, 0, sw, sh);
+
+  Tesseract.recognize(canvas, 'eng', {
     logger: m => console.log(m)
   }).then(({ data: { text } }) => {
     const numbers = text.match(/\d+/g);
     if (numbers) {
       document.getElementById("num1").value = numbers[0] || "";
       document.getElementById("num2").value = numbers[1] || "";
-      document.getElementById("num3").value = numbers[2] || "";
     } else {
       alert("Числа не найдены.");
     }
   });
-}
+});
+
