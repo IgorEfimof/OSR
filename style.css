@@ -1,21 +1,27 @@
 body {
   font-family: sans-serif;
-  padding: 20px;
   text-align: center;
 }
-.frame {
-  border: 3px dashed #888;
-  height: 200px;
-  margin: 20px auto;
-  width: 80%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #aaa;
+.container {
+  position: relative;
+  display: inline-block;
+}
+#sourceImage {
+  max-width: 90%;
+  margin-top: 20px;
+}
+#frame {
+  position: absolute;
+  width: 150px;
+  height: 100px;
+  border: 2px dashed red;
+  cursor: move;
+  top: 50px;
+  left: 50px;
 }
 .inputs input {
   margin: 10px;
-  padding: 8px;
-  width: 100px;
+  padding: 5px;
   font-size: 1em;
 }
+
