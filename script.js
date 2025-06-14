@@ -1,39 +1,72 @@
 const frame = document.getElementById("frame");
+const resizer = frame.querySelector(".resizer");
+let startX, startY, startWidth, startHeight;
 let isDragging = false;
-let offset = { x: 0, y: 0 };
+let dragOffsetX, dragOffsetY;
 
-frame.addEventListener("mousedown", (e) => {
+// Для перетаскивания
+function startDrag(e) {
   isDragging = true;
-  offset.x = e.offsetX;
-  offset.y = e.offsetY;
-});
-document.addEventListener("mousemove", (e) => {
-  if (isDragging) {
-    frame.style.left = `${e.pageX - offset.x}px`;
-    frame.style.top = `${e.pageY - offset.y}px`;
-  }
-});
-document.addEventListener("mouseup", () => {
+  const touch = e.touches ? e.touches[0] : e;
+  dragOffsetX = touch.clientX - frame.offsetLeft;
+  dragOffsetY = touch.clientY - frame.offsetTop;
+}
+function doDrag(e) {
+  if (!isDragging) return;
+  const touch = e.touches ? e.touches[0] : e;
+  frame.style.left = `${touch.clientX - dragOffsetX}px`;
+  frame.style.top = `${touch.clientY - dragOffsetY}px`;
+}
+function stopDrag() {
   isDragging = false;
-});
+}
 
+// Для масштабирования
+function startResize(e) {
+  e.stopPropagation();
+  const touch = e.touches ? e.touches[0] : e;
+  startX = touch.clientX;
+  startY = touch.clientY;
+  startWidth = frame.offsetWidth;
+  startHeight = frame.offsetHeight;
+  document.addEventListener("touchmove", doResize, { passive: false });
+  document.addEventListener("touchend", stopResize);
+}
+function doResize(e) {
+  e.preventDefault();
+  const touch = e.touches[0];
+  frame.style.width = `${startWidth + (touch.clientX - startX)}px`;
+  frame.style.height = `${startHeight + (touch.clientY - startY)}px`;
+}
+function stopResize() {
+  document.removeEventListener("touchmove", doResize);
+  document.removeEventListener("touchend", stopResize);
+}
+
+// Обработчики
+frame.addEventListener("touchstart", startDrag);
+frame.addEventListener("touchmove", doDrag);
+frame.addEventListener("touchend", stopDrag);
+resizer.addEventListener("touchstart", startResize);
+
+// Загрузка изображения
 document.getElementById("imgInput").addEventListener("change", (e) => {
   const file = e.target.files[0];
   if (file) {
     const reader = new FileReader();
-    reader.onload = function () {
+    reader.onload = () => {
       document.getElementById("sourceImage").src = reader.result;
     };
     reader.readAsDataURL(file);
   }
 });
 
+// Распознавание
 document.getElementById("recognizeBtn").addEventListener("click", () => {
   const img = document.getElementById("sourceImage");
   const frameRect = frame.getBoundingClientRect();
   const imgRect = img.getBoundingClientRect();
 
-  // Создание временного canvas
   const canvas = document.createElement("canvas");
   const ctx = canvas.getContext("2d");
 
@@ -50,15 +83,12 @@ document.getElementById("recognizeBtn").addEventListener("click", () => {
   ctx.drawImage(img, sx, sy, sw, sh, 0, 0, sw, sh);
 
   Tesseract.recognize(canvas, 'eng', {
-    logger: m => console.log(m)
+    logger: m => console.log(m),
   }).then(({ data: { text } }) => {
     const numbers = text.match(/\d+/g);
-    if (numbers) {
-      document.getElementById("num1").value = numbers[0] || "";
-      document.getElementById("num2").value = numbers[1] || "";
-    } else {
-      alert("Числа не найдены.");
-    }
+    document.getElementById("num1").value = numbers?.[0] || "";
+    document.getElementById("num2").value = numbers?.[1] || "";
   });
 });
+
 
