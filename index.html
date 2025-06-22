@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Изменяемая OSR Рамка на iPad</title>
+    <title>Изменяемая OSR Рамка: Настольный Теннис</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -18,9 +18,19 @@
         <div class="resizer right-middle" data-direction="e"></div>
     </div>
 
+    <div class="game-info">
+        <h3>Текущая игра: Настольный теннис</h3>
+        <p>Игрок 1: <span id="player1-score" class="scannable-text">2</span></p>
+        <p>Игрок 2: <span id="player2-score" class="scannable-text">3</span></p>
+        <p>Текущий гейм: <span id="current-game" class="scannable-text">5</span></p>
+        <p>Коэффициент Игрок 1: <span id="player1-odds" class="scannable-text">1.85</span></p>
+        <p>Коэффициент Игрок 2: <span id="player2-odds" class="scannable-text">1.95</span></p>
+        <button id="update-scores-btn">Обновить счёт и КФ</button>
+    </div>
+
     <div id="info-output-block" class="info-block">
         <h2>Считанная информация:</h2>
-        <p id="output-content">Рамка готова к перемещению.</p>
+        <p id="output-content">Переместите рамку, чтобы считать данные.</p>
     </div>
 
     <script src="script.js"></script>
