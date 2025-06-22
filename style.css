@@ -1,13 +1,14 @@
 body {
     font-family: sans-serif;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: flex-start;
+    display: flex; /* Используем Flexbox для основного расположения */
+    flex-wrap: wrap; /* Разрешаем элементам переноситься на новую строку */
+    justify-content: center; /* Центрируем содержимое по горизонтали */
+    align-items: flex-start; /* Выравниваем элементы по верху */
     min-height: 100vh;
     margin: 0;
+    padding: 20px; /* Добавим небольшой отступ от краев */
     background-color: #f0f0f0;
-    overflow: hidden;
+    overflow: hidden; /* Чтобы рамка не создавала скролл, если выйдет за пределы видимости */
     user-select: none;
     -webkit-user-select: none;
     -moz-user-select: none;
@@ -15,16 +16,17 @@ body {
 }
 
 .osr-frame {
-    position: absolute;
+    position: absolute; /* Рамка остаётся абсолютно позиционированной */
     width: 200px;
     height: 150px;
     border: 2px solid #007bff;
     background-color: rgba(0, 123, 255, 0.2);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     border-radius: 8px;
-    top: 50px;
-    left: 50px;
+    top: 50px; /* Начальное положение */
+    left: 50px; /* Начальное положение */
     cursor: grab;
+    z-index: 100; /* Убедимся, что рамка всегда поверх других элементов */
 }
 
 .osr-frame:active {
@@ -53,15 +55,17 @@ body {
 .resizer.right-middle { right: -6px; top: 50%; transform: translateY(-50%); cursor: ew-resize; }
 
 .game-info {
-    position: absolute; /* Делаем блок позиционированным */
-    top: 100px; /* Позиционируем его где-то на экране */
-    left: 400px;
+    /* Эти блоки теперь будут позиционироваться Flexbox'ом */
+    position: relative; /* Важно, чтобы z-index работал корректно относительно других flex-элементов */
+    flex: 1; /* Позволяет блоку занимать доступное пространство */
+    min-width: 300px; /* Минимальная ширина, чтобы не схлопывался */
+    margin: 10px; /* Отступы между блоками */
     background-color: #fff;
     padding: 20px;
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     text-align: center;
-    z-index: 1; /* Чтобы рамка была выше, если пересекаются */
+    z-index: 1; /* Низкий z-index, чтобы рамка была выше */
 }
 
 .game-info h3 {
@@ -81,16 +85,17 @@ body {
 }
 
 .info-block {
-    margin-top: 250px; /* Отступ, чтобы не перекрываться рамкой */
-    width: 80%;
-    max-width: 600px;
+    /* Этот блок также позиционируется Flexbox'ом */
+    position: relative; /* Важно для z-index */
+    flex: 1; /* Позволяет блоку занимать доступное пространство */
+    min-width: 300px; /* Минимальная ширина */
+    margin: 10px; /* Отступы между блоками */
     background-color: #fff;
     padding: 20px;
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     text-align: center;
-    position: relative;
-    z-index: 5;
+    z-index: 1; /* Низкий z-index */
 }
 
 .info-block h2 {
