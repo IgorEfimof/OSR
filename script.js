@@ -2,7 +2,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const osrFrame = document.getElementById('draggable-osr-frame');
     const outputContent = document.getElementById('output-content');
     const resizers = document.querySelectorAll('.resizer');
-    // const scannableElements = document.querySelectorAll('.scannable-text'); // Эту строку удаляем
+    // Добавляем ссылку на элементы, которые будут "сканироваться"
+    const scannableElements = document.querySelectorAll('.scannable-text');
+    const updateScoresBtn = document.getElementById('update-scores-btn');
+    const player1Score = document.getElementById('player1-score');
+    const player2Score = document.getElementById('player2-score');
+    const currentGame = document.getElementById('current-game');
+    const player1Odds = document.getElementById('player1-odds');
+    const player2Odds = document.getElementById('player2-odds');
+
 
     let isDragging = false;
     let isResizing = false;
@@ -33,7 +41,6 @@ document.addEventListener('DOMContentLoaded', () => {
         startTop = rect.top;
 
         if (isDragging) {
-            // Исправляем, чтобы начальные координаты были относительно элемента, а не документа
             startLeft = clientX - rect.left;
             startTop = clientY - rect.top;
         }
@@ -51,11 +58,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const dy = clientY - startY;
 
         if (isDragging) {
-            // Убедитесь, что новые координаты правильно рассчитываются относительно видимой области
             let newLeft = clientX - startLeft;
             let newTop = clientY - startTop;
 
-            // Ограничиваем перемещение в пределах окна
             newLeft = Math.max(0, Math.min(newLeft, window.innerWidth - osrFrame.offsetWidth));
             newTop = Math.max(0, Math.min(newTop, window.innerHeight - osrFrame.offsetHeight));
 
@@ -125,7 +130,7 @@ document.addEventListener('DOMContentLoaded', () => {
             osrFrame.style.left = `${newLeft}px`;
             osrFrame.style.top = `${newTop}px`;
         }
-        // readAndDisplayInformation(); // Эту строку больше не вызываем, так как нет элементов для считывания
+        readAndDisplayInformation(); // Обновляем информацию при движении/изменении размера
     }
 
     function handleMouseUp() {
@@ -133,7 +138,7 @@ document.addEventListener('DOMContentLoaded', () => {
         isResizing = false;
         currentResizer = null;
         osrFrame.style.cursor = 'grab';
-        readAndDisplayInformation(); // Обновим информацию в конце действия
+        readAndDisplayInformation();
     }
 
     osrFrame.addEventListener('mousedown', handleMouseDown);
@@ -151,11 +156,74 @@ document.addEventListener('DOMContentLoaded', () => {
     document.addEventListener('touchend', handleMouseUp);
     document.addEventListener('touchcancel', handleMouseUp);
 
-    // Функция для "считывания" информации теперь просто сообщает, что рамка готова
+    // --- Функция для "считывания" информации внутри рамки ---
     function readAndDisplayInformation() {
-        outputContent.textContent = "Рамка готова к перемещению.";
+        const frameRect = osrFrame.getBoundingClientRect();
+        let collectedText = [];
+
+        scannableElements.forEach(element => {
+            const elementRect = element.getBoundingClientRect();
+
+            // Проверяем, находится ли элемент полностью внутри рамки
+            const isInside = (
+                elementRect.left >= frameRect.left &&
+                elementRect.right <= frameRect.right &&
+                elementRect.top >= frameRect.top &&
+                elementRect.bottom <= frameRect.bottom
+            );
+
+            if (isInside) {
+                // Если элемент внутри рамки, добавляем его текстовое содержимое
+                collectedText.push(element.textContent.trim());
+            }
+        });
+
+        if (collectedText.length > 0) {
+            outputContent.innerHTML = "Считано:\n" + collectedText.join('<br>'); // Используем <br> для переноса строк
+        } else {
+            outputContent.textContent = "Переместите рамку или измените её размер, чтобы считать данные.";
+        }
     }
 
+    // --- Логика для имитации обновления счёта и КФ ---
+    let currentP1Score = 2;
+    let currentP2Score = 3;
+    let currentOddsP1 = 1.85;
+    let currentOddsP2 = 1.95;
+
+    function updateGameScores() {
+        // Имитируем изменения счета и КФ
+        if (currentP1Score === 2 && currentP2Score === 3) {
+            currentP1Score = 3;
+            currentP2Score = 3;
+            currentOddsP1 = 1.90;
+            currentOddsP2 = 1.90;
+        } else if (currentP1Score === 3 && currentP2Score === 3) {
+            currentP1Score = 3;
+            currentP2Score = 4;
+            currentOddsP1 = 2.10;
+            currentOddsP2 = 1.75;
+        } else {
+            currentP1Score = 2; // Сброс для следующего цикла
+            currentP2Score = 3;
+            currentOddsP1 = 1.85;
+            currentOddsP2 = 1.95;
+        }
+
+        // Обновляем текст в HTML-элементах
+        player1Score.textContent = currentP1Score;
+        player2Score.textContent = currentP2Score;
+        currentGame.textContent = currentP1Score + currentP2Score + 1; // Номер гейма
+        player1Odds.textContent = currentOddsP1.toFixed(2);
+        player2Odds.textContent = currentOddsP2.toFixed(2);
+
+        // После обновления данных, пересчитываем информацию в рамке
+        readAndDisplayInformation();
+    }
+
+    updateScoresBtn.addEventListener('click', updateGameScores);
+
+    // Инициализация: считаем информацию при загрузке страницы
     readAndDisplayInformation();
 });
 
