@@ -3,16 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OSR Рамка на iPad</title>
+    <title>Изменяемая OSR Рамка на iPad</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div id="draggable-osr-frame" class="osr-frame">
-        <div class="osr-handle"></div> </div>
+        <div class="resizer top-left" data-direction="nw"></div>
+        <div class="resizer top-right" data-direction="ne"></div>
+        <div class="resizer bottom-left" data-direction="sw"></div>
+        <div class="resizer bottom-right" data-direction="se"></div>
+        <div class="resizer top-middle" data-direction="n"></div>
+        <div class="resizer bottom-middle" data-direction="s"></div>
+        <div class="resizer left-middle" data-direction="w"></div>
+        <div class="resizer right-middle" data-direction="e"></div>
+    </div>
+
+    <div class="content-area">
+        <p class="scannable-text" style="top: 50px; left: 500px;">Привет</p>
+        <div class="scannable-text" style="top: 150px; left: 400px; font-size: 24px;">А</div>
+        <span class="scannable-text" style="top: 250px; left: 650px;">123</span>
+        <h3 class="scannable-text" style="top: 350px; left: 450px;">Кот</h3>
+        <p class="scannable-text" style="top: 450px; left: 550px;">Тест</p>
+        <span class="scannable-text" style="top: 550px; left: 400px;">G_E_M_I_N_I</span>
+        <div class="scannable-text" style="top: 650px; left: 600px;">7890</div>
+    </div>
+
 
     <div id="info-output-block" class="info-block">
-        <h2>Информация:</h2>
-        <p id="output-content">Переместите рамку для считывания информации.</p>
+        <h2>Считанная информация:</h2>
+        <p id="output-content">Переместите рамку или измените её размер, чтобы считать информацию.</p>
     </div>
 
     <script src="script.js"></script>
