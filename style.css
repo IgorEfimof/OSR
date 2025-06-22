@@ -1,38 +1,73 @@
 body {
-  font-family: sans-serif;
-  text-align: center;
+    font-family: sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    min-height: 100vh;
+    margin: 0;
+    background-color: #f0f0f0;
+    overflow: hidden; /* Чтобы рамка не создавала скролл, если выйдет за пределы видимости */
+    user-select: none; /* Предотвращает выделение текста при перетаскивании */
+    -webkit-user-select: none; /* Для iOS */
+    -moz-user-select: none;
+    -ms-user-select: none;
 }
-.container {
-  position: relative;
-  display: inline-block;
+
+.osr-frame {
+    position: absolute; /* Важно для перемещения */
+    width: 200px;
+    height: 150px;
+    border: 2px solid #007bff;
+    background-color: rgba(0, 123, 255, 0.2);
+    cursor: grab; /* Изменяем курсор при наведении */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    top: 50px; /* Начальное положение */
+    left: 50px; /* Начальное положение */
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
-#sourceImage {
-  max-width: 90%;
-  margin-top: 20px;
+
+.osr-frame:active {
+    cursor: grabbing; /* Курсор при перетаскивании */
 }
-#frame {
-  position: absolute;
-  width: 150px;
-  height: 100px;
-  border: 2px solid red;
-  top: 50px;
-  left: 50px;
-  box-sizing: border-box;
-  touch-action: none;
+
+.osr-handle {
+    width: 100%; /* Весь блок можно перетаскивать */
+    height: 100%;
+    /* Если вы хотите отдельную ручку, можно сделать так: */
+    /* position: absolute;
+    bottom: -15px;
+    right: -15px;
+    width: 30px;
+    height: 30px;
+    background-color: #007bff;
+    border-radius: 50%;
+    cursor: grab; */
 }
-.resizer {
-  width: 15px;
-  height: 15px;
-  background: red;
-  position: absolute;
-  right: 0;
-  bottom: 0;
-  touch-action: none;
+
+
+.info-block {
+    margin-top: 250px; /* Отступ, чтобы не перекрываться рамкой */
+    width: 80%;
+    max-width: 600px;
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    text-align: center;
 }
-.inputs input {
-  margin: 10px;
-  padding: 5px;
-  font-size: 1em;
+
+.info-block h2 {
+    color: #333;
+    margin-bottom: 10px;
+}
+
+.info-block p {
+    color: #666;
+    line-height: 1.5;
 }
 
 
