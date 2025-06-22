@@ -54,24 +54,6 @@ body {
 .resizer.left-middle { left: -6px; top: 50%; transform: translateY(-50%); cursor: ew-resize; }
 .resizer.right-middle { right: -6px; top: 50%; transform: translateY(-50%); cursor: ew-resize; }
 
-
-/* Область с текстом для сканирования */
-.content-area {
-    position: absolute; /* Позволяет элементам внутри него быть позиционированными */
-    width: 100%;
-    height: 100%;
-    pointer-events: none; /* Важно: позволяет кликать сквозь этот слой на рамку */
-}
-
-.scannable-text {
-    position: absolute; /* Делаем текст позиционированным, чтобы задавать ему top/left */
-    color: #444;
-    font-size: 18px;
-    font-weight: bold;
-    pointer-events: auto; /* Снова делаем текст доступным для событий, если нужно, но в данном случае не обязательно */
-}
-
-
 .info-block {
     margin-top: 250px; /* Отступ, чтобы не перекрываться рамкой */
     width: 80%;
