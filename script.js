@@ -2,7 +2,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const osrFrame = document.getElementById('draggable-osr-frame');
     const outputContent = document.getElementById('output-content');
     const resizers = document.querySelectorAll('.resizer');
-    const scannableElements = document.querySelectorAll('.scannable-text');
+    // const scannableElements = document.querySelectorAll('.scannable-text'); // Эту строку удаляем
 
     let isDragging = false;
     let isResizing = false;
@@ -11,10 +11,8 @@ document.addEventListener('DOMContentLoaded', () => {
     let startWidth, startHeight;
     let startLeft, startTop;
 
-    // --- Функции для обработки событий мыши/тача ---
-
     function handleMouseDown(e) {
-        e.preventDefault(); // Предотвращаем стандартное поведение (напр., выделение текста)
+        e.preventDefault();
         if (e.target.classList.contains('resizer')) {
             isResizing = true;
             currentResizer = e.target;
@@ -34,10 +32,10 @@ document.addEventListener('DOMContentLoaded', () => {
         startLeft = rect.left;
         startTop = rect.top;
 
-        // Если это перетаскивание рамки, сохраняем смещение
         if (isDragging) {
-            startLeft = clientX - (rect.left - window.scrollX); // Отступ от левого края документа
-            startTop = clientY - (rect.top - window.scrollY);   // Отступ от верхнего края документа
+            // Исправляем, чтобы начальные координаты были относительно элемента, а не документа
+            startLeft = clientX - rect.left;
+            startTop = clientY - rect.top;
         }
 
         osrFrame.style.cursor = 'grabbing';
@@ -53,8 +51,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const dy = clientY - startY;
 
         if (isDragging) {
-            let newLeft = clientX - (startLeft - window.scrollX);
-            let newTop = clientY - (startTop - window.scrollY);
+            // Убедитесь, что новые координаты правильно рассчитываются относительно видимой области
+            let newLeft = clientX - startLeft;
+            let newTop = clientY - startTop;
 
             // Ограничиваем перемещение в пределах окна
             newLeft = Math.max(0, Math.min(newLeft, window.innerWidth - osrFrame.offsetWidth));
@@ -70,28 +69,28 @@ document.addEventListener('DOMContentLoaded', () => {
             let newLeft = startLeft;
             let newTop = startTop;
 
-            const minSize = 50; // Минимальный размер рамки
+            const minSize = 50;
 
             switch (direction) {
-                case 'n': // Сверху
+                case 'n':
                     newHeight = startHeight - dy;
                     newTop = startTop + dy;
                     if (newHeight < minSize) { newHeight = minSize; newTop = startTop + startHeight - minSize; }
                     break;
-                case 's': // Снизу
+                case 's':
                     newHeight = startHeight + dy;
                     if (newHeight < minSize) newHeight = minSize;
                     break;
-                case 'w': // Слева
+                case 'w':
                     newWidth = startWidth - dx;
                     newLeft = startLeft + dx;
                     if (newWidth < minSize) { newWidth = minSize; newLeft = startLeft + startWidth - minSize; }
                     break;
-                case 'e': // Справа
+                case 'e':
                     newWidth = startWidth + dx;
                     if (newWidth < minSize) newWidth = minSize;
                     break;
-                case 'nw': // Северо-запад
+                case 'nw':
                     newWidth = startWidth - dx;
                     newLeft = startLeft + dx;
                     newHeight = startHeight - dy;
@@ -99,21 +98,21 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (newWidth < minSize) { newWidth = minSize; newLeft = startLeft + startWidth - minSize; }
                     if (newHeight < minSize) { newHeight = minSize; newTop = startTop + startHeight - minSize; }
                     break;
-                case 'ne': // Северо-восток
+                case 'ne':
                     newWidth = startWidth + dx;
                     newHeight = startHeight - dy;
                     newTop = startTop + dy;
                     if (newWidth < minSize) newWidth = minSize;
                     if (newHeight < minSize) { newHeight = minSize; newTop = startTop + startHeight - minSize; }
                     break;
-                case 'sw': // Юго-запад
+                case 'sw':
                     newWidth = startWidth - dx;
                     newLeft = startLeft + dx;
                     newHeight = startHeight + dy;
                     if (newWidth < minSize) { newWidth = minSize; newLeft = startLeft + startWidth - minSize; }
                     if (newHeight < minSize) newHeight = minSize;
                     break;
-                case 'se': // Юго-восток
+                case 'se':
                     newWidth = startWidth + dx;
                     newHeight = startHeight + dy;
                     if (newWidth < minSize) newWidth = minSize;
@@ -126,23 +125,20 @@ document.addEventListener('DOMContentLoaded', () => {
             osrFrame.style.left = `${newLeft}px`;
             osrFrame.style.top = `${newTop}px`;
         }
-        readAndDisplayInformation(); // Обновляем информацию при движении/изменении размера
+        // readAndDisplayInformation(); // Эту строку больше не вызываем, так как нет элементов для считывания
     }
 
     function handleMouseUp() {
         isDragging = false;
         isResizing = false;
         currentResizer = null;
-        osrFrame.style.cursor = 'grab'; // Возвращаем обычный курсор для перетаскивания
+        osrFrame.style.cursor = 'grab';
+        readAndDisplayInformation(); // Обновим информацию в конце действия
     }
 
-    // --- Назначаем обработчики событий ---
-
-    // Для перетаскивания рамки (кликаем по самой рамке, кроме ручек)
     osrFrame.addEventListener('mousedown', handleMouseDown);
     osrFrame.addEventListener('touchstart', handleMouseDown);
 
-    // Для изменения размера (кликаем по ручкам)
     resizers.forEach(resizer => {
         resizer.addEventListener('mousedown', handleMouseDown);
         resizer.addEventListener('touchstart', handleMouseDown);
@@ -153,39 +149,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.addEventListener('mouseup', handleMouseUp);
     document.addEventListener('touchend', handleMouseUp);
-    document.addEventListener('touchcancel', handleMouseUp); // На случай отмены касания
+    document.addEventListener('touchcancel', handleMouseUp);
 
-    // --- Функция для "считывания" информации внутри рамки ---
-
+    // Функция для "считывания" информации теперь просто сообщает, что рамка готова
     function readAndDisplayInformation() {
-        const frameRect = osrFrame.getBoundingClientRect();
-        let collectedText = [];
-
-        scannableElements.forEach(element => {
-            const elementRect = element.getBoundingClientRect();
-
-            // Проверяем, находится ли элемент полностью внутри рамки
-            const isInside = (
-                elementRect.left >= frameRect.left &&
-                elementRect.right <= frameRect.right &&
-                elementRect.top >= frameRect.top &&
-                elementRect.bottom <= frameRect.bottom
-            );
-
-            if (isInside) {
-                // Если элемент внутри рамки, добавляем его текстовое содержимое
-                collectedText.push(element.textContent.trim());
-            }
-        });
-
-        if (collectedText.length > 0) {
-            outputContent.textContent = "Считано:\n" + collectedText.join('\n');
-        } else {
-            outputContent.textContent = "Переместите рамку или измените её размер, чтобы считать информацию.";
-        }
+        outputContent.textContent = "Рамка готова к перемещению.";
     }
 
-    // Инициализация: считаем информацию при загрузке страницы
     readAndDisplayInformation();
 });
 
