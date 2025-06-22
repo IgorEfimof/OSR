@@ -1,149 +1,191 @@
 document.addEventListener('DOMContentLoaded', () => {
     const osrFrame = document.getElementById('draggable-osr-frame');
     const outputContent = document.getElementById('output-content');
+    const resizers = document.querySelectorAll('.resizer');
+    const scannableElements = document.querySelectorAll('.scannable-text');
 
     let isDragging = false;
-    let offsetX, offsetY; // Смещение курсора относительно верхнего левого угла рамки
+    let isResizing = false;
+    let currentResizer = null;
+    let startX, startY;
+    let startWidth, startHeight;
+    let startLeft, startTop;
 
-    // --- Обработчики событий для перетаскивания (для мыши и тач-событий) ---
+    // --- Функции для обработки событий мыши/тача ---
 
-    // События для мыши
-    osrFrame.addEventListener('mousedown', (e) => {
-        isDragging = true;
-        offsetX = e.clientX - osrFrame.getBoundingClientRect().left;
-        offsetY = e.clientY - osrFrame.getBoundingClientRect().top;
-        osrFrame.style.cursor = 'grabbing';
-    });
+    function handleMouseDown(e) {
+        e.preventDefault(); // Предотвращаем стандартное поведение (напр., выделение текста)
+        if (e.target.classList.contains('resizer')) {
+            isResizing = true;
+            currentResizer = e.target;
+        } else {
+            isDragging = true;
+        }
 
-    document.addEventListener('mousemove', (e) => {
-        if (!isDragging) return;
+        const clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
+        const clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
 
-        let newX = e.clientX - offsetX;
-        let newY = e.clientY - offsetY;
+        startX = clientX;
+        startY = clientY;
 
-        // Ограничиваем перемещение рамки в пределах видимой области (или документа)
-        newX = Math.max(0, Math.min(newX, window.innerWidth - osrFrame.offsetWidth));
-        newY = Math.max(0, Math.min(newY, window.innerHeight - osrFrame.offsetHeight));
-
-        osrFrame.style.left = `${newX}px`;
-        osrFrame.style.top = `${newY}px`;
-        readAndDisplayInformation(); // Вызываем функцию считывания при перемещении
-    });
-
-    document.addEventListener('mouseup', () => {
-        isDragging = false;
-        osrFrame.style.cursor = 'grab';
-    });
-
-    // События для тач-скрина (iPad)
-    osrFrame.addEventListener('touchstart', (e) => {
-        isDragging = true;
-        const touch = e.touches[0]; // Получаем первый палец
-        offsetX = touch.clientX - osrFrame.getBoundingClientRect().left;
-        offsetY = touch.clientY - osrFrame.getBoundingClientRect().top;
-        osrFrame.style.cursor = 'grabbing';
-        e.preventDefault(); // Предотвращаем прокрутку страницы при перетаскивании
-    });
-
-    document.addEventListener('touchmove', (e) => {
-        if (!isDragging) return;
-
-        const touch = e.touches[0];
-        let newX = touch.clientX - offsetX;
-        let newY = touch.clientY - offsetY;
-
-        // Ограничиваем перемещение рамки
-        newX = Math.max(0, Math.min(newX, window.innerWidth - osrFrame.offsetWidth));
-        newY = Math.max(0, Math.min(newY, window.innerHeight - osrFrame.offsetHeight));
-
-        osrFrame.style.left = `${newX}px`;
-        osrFrame.style.top = `${newY}px`;
-        readAndDisplayInformation();
-        e.preventDefault(); // Предотвращаем прокрутку
-    });
-
-    document.addEventListener('touchend', () => {
-        isDragging = false;
-        osrFrame.style.cursor = 'grab';
-    });
-
-    // --- Функция для "считывания" информации ---
-
-    function readAndDisplayInformation() {
-        // Здесь самое интересное и самое зависящее от ваших нужд место.
-        // Что именно вы хотите "считывать"?
-
-        // Вариант 1: Просто выводить координаты рамки
         const rect = osrFrame.getBoundingClientRect();
-        outputContent.textContent = `
-            Рамка находится:
-            X: ${Math.round(rect.left)}px,
-            Y: ${Math.round(rect.top)}px,
-            Ширина: ${Math.round(rect.width)}px,
-            Высота: ${Math.round(rect.height)}px
-        `;
+        startWidth = rect.width;
+        startHeight = rect.height;
+        startLeft = rect.left;
+        startTop = rect.top;
 
-        // Вариант 2: Считывание текста из другого элемента, если он попадает в рамку
-        // Допустим, у вас есть <p class="some-text-element">Некий текст</p>
-        /*
-        const someTextElement = document.querySelector('.some-text-element');
-        if (someTextElement) {
-            const textRect = someTextElement.getBoundingClientRect();
-            if (
-                rect.left < textRect.right &&
-                rect.right > textRect.left &&
-                rect.top < textRect.bottom &&
-                rect.bottom > textRect.top
-            ) {
-                outputContent.textContent = `Рамка пересекается с текстом: "${someTextElement.textContent}"`;
-            } else {
-                outputContent.textContent = "Рамка не пересекается с текстом.";
-            }
+        // Если это перетаскивание рамки, сохраняем смещение
+        if (isDragging) {
+            startLeft = clientX - (rect.left - window.scrollX); // Отступ от левого края документа
+            startTop = clientY - (rect.top - window.scrollY);   // Отступ от верхнего края документа
         }
-        */
 
-        // Вариант 3: Более сложное "считывание" - например, OCR (Optical Character Recognition)
-        // Для OCR вам понадобится библиотека JavaScript, такая как Tesseract.js.
-        // Это выходит за рамки простого HTML/CSS/JS и требует дополнительных шагов:
-        // 1. Подключение Tesseract.js
-        // 2. Создание Canvas из области рамки (с использованием html2canvas, например)
-        // 3. Передача Canvas в Tesseract.js для распознавания текста.
-        // Пример (псевдокод с Tesseract.js):
-        /*
-        (async () => {
-            const { createWorker } = Tesseract; // Предполагается, что Tesseract подключен
-            const worker = await createWorker('eng'); // Язык для распознавания
-
-            // Получаем изображение из области рамки (это сложно, нужен html2canvas или аналоги)
-            // const screenshotCanvas = await html2canvas(osrFrame);
-            // const imageData = screenshotCanvas.toDataURL();
-
-            // const { data: { text } } = await worker.recognize(imageData);
-            // outputContent.textContent = `Распознанный текст: ${text}`;
-            // await worker.terminate();
-        })();
-        */
-
-        // Вариант 4: Считывание значения из input-поля, если оно попадает в рамку
-        /*
-        const inputField = document.querySelector('input[type="text"]');
-        if (inputField) {
-            const inputRect = inputField.getBoundingClientRect();
-            if (
-                rect.left < inputRect.right &&
-                rect.right > inputRect.left &&
-                rect.top < inputRect.bottom &&
-                rect.bottom > inputRect.top
-            ) {
-                outputContent.textContent = `Значение поля ввода: "${inputField.value}"`;
-            } else {
-                outputContent.textContent = "Рамка не пересекается с полем ввода.";
-            }
-        }
-        */
+        osrFrame.style.cursor = 'grabbing';
     }
 
-    // Вызываем функцию считывания при загрузке страницы, чтобы отобразить начальную информацию
+    function handleMouseMove(e) {
+        if (!isDragging && !isResizing) return;
+
+        const clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
+        const clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
+
+        const dx = clientX - startX;
+        const dy = clientY - startY;
+
+        if (isDragging) {
+            let newLeft = clientX - (startLeft - window.scrollX);
+            let newTop = clientY - (startTop - window.scrollY);
+
+            // Ограничиваем перемещение в пределах окна
+            newLeft = Math.max(0, Math.min(newLeft, window.innerWidth - osrFrame.offsetWidth));
+            newTop = Math.max(0, Math.min(newTop, window.innerHeight - osrFrame.offsetHeight));
+
+            osrFrame.style.left = `${newLeft}px`;
+            osrFrame.style.top = `${newTop}px`;
+
+        } else if (isResizing) {
+            const direction = currentResizer.dataset.direction;
+            let newWidth = startWidth;
+            let newHeight = startHeight;
+            let newLeft = startLeft;
+            let newTop = startTop;
+
+            const minSize = 50; // Минимальный размер рамки
+
+            switch (direction) {
+                case 'n': // Сверху
+                    newHeight = startHeight - dy;
+                    newTop = startTop + dy;
+                    if (newHeight < minSize) { newHeight = minSize; newTop = startTop + startHeight - minSize; }
+                    break;
+                case 's': // Снизу
+                    newHeight = startHeight + dy;
+                    if (newHeight < minSize) newHeight = minSize;
+                    break;
+                case 'w': // Слева
+                    newWidth = startWidth - dx;
+                    newLeft = startLeft + dx;
+                    if (newWidth < minSize) { newWidth = minSize; newLeft = startLeft + startWidth - minSize; }
+                    break;
+                case 'e': // Справа
+                    newWidth = startWidth + dx;
+                    if (newWidth < minSize) newWidth = minSize;
+                    break;
+                case 'nw': // Северо-запад
+                    newWidth = startWidth - dx;
+                    newLeft = startLeft + dx;
+                    newHeight = startHeight - dy;
+                    newTop = startTop + dy;
+                    if (newWidth < minSize) { newWidth = minSize; newLeft = startLeft + startWidth - minSize; }
+                    if (newHeight < minSize) { newHeight = minSize; newTop = startTop + startHeight - minSize; }
+                    break;
+                case 'ne': // Северо-восток
+                    newWidth = startWidth + dx;
+                    newHeight = startHeight - dy;
+                    newTop = startTop + dy;
+                    if (newWidth < minSize) newWidth = minSize;
+                    if (newHeight < minSize) { newHeight = minSize; newTop = startTop + startHeight - minSize; }
+                    break;
+                case 'sw': // Юго-запад
+                    newWidth = startWidth - dx;
+                    newLeft = startLeft + dx;
+                    newHeight = startHeight + dy;
+                    if (newWidth < minSize) { newWidth = minSize; newLeft = startLeft + startWidth - minSize; }
+                    if (newHeight < minSize) newHeight = minSize;
+                    break;
+                case 'se': // Юго-восток
+                    newWidth = startWidth + dx;
+                    newHeight = startHeight + dy;
+                    if (newWidth < minSize) newWidth = minSize;
+                    if (newHeight < minSize) newHeight = minSize;
+                    break;
+            }
+
+            osrFrame.style.width = `${newWidth}px`;
+            osrFrame.style.height = `${newHeight}px`;
+            osrFrame.style.left = `${newLeft}px`;
+            osrFrame.style.top = `${newTop}px`;
+        }
+        readAndDisplayInformation(); // Обновляем информацию при движении/изменении размера
+    }
+
+    function handleMouseUp() {
+        isDragging = false;
+        isResizing = false;
+        currentResizer = null;
+        osrFrame.style.cursor = 'grab'; // Возвращаем обычный курсор для перетаскивания
+    }
+
+    // --- Назначаем обработчики событий ---
+
+    // Для перетаскивания рамки (кликаем по самой рамке, кроме ручек)
+    osrFrame.addEventListener('mousedown', handleMouseDown);
+    osrFrame.addEventListener('touchstart', handleMouseDown);
+
+    // Для изменения размера (кликаем по ручкам)
+    resizers.forEach(resizer => {
+        resizer.addEventListener('mousedown', handleMouseDown);
+        resizer.addEventListener('touchstart', handleMouseDown);
+    });
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('touchmove', handleMouseMove);
+
+    document.addEventListener('mouseup', handleMouseUp);
+    document.addEventListener('touchend', handleMouseUp);
+    document.addEventListener('touchcancel', handleMouseUp); // На случай отмены касания
+
+    // --- Функция для "считывания" информации внутри рамки ---
+
+    function readAndDisplayInformation() {
+        const frameRect = osrFrame.getBoundingClientRect();
+        let collectedText = [];
+
+        scannableElements.forEach(element => {
+            const elementRect = element.getBoundingClientRect();
+
+            // Проверяем, находится ли элемент полностью внутри рамки
+            const isInside = (
+                elementRect.left >= frameRect.left &&
+                elementRect.right <= frameRect.right &&
+                elementRect.top >= frameRect.top &&
+                elementRect.bottom <= frameRect.bottom
+            );
+
+            if (isInside) {
+                // Если элемент внутри рамки, добавляем его текстовое содержимое
+                collectedText.push(element.textContent.trim());
+            }
+        });
+
+        if (collectedText.length > 0) {
+            outputContent.textContent = "Считано:\n" + collectedText.join('\n');
+        } else {
+            outputContent.textContent = "Переместите рамку или измените её размер, чтобы считать информацию.";
+        }
+    }
+
+    // Инициализация: считаем информацию при загрузке страницы
     readAndDisplayInformation();
 });
 
